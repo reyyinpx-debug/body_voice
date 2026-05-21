@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>体曰 · Body Voice</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#F8F6F0">
@@ -15,7 +15,7 @@
 @font-face { font-family:'Lishu'; src:url('fonts/lishu.ttf') format('truetype'); font-weight:400; font-display:swap; }
 @font-face { font-family:'Zhuan'; src:url('fonts/zhuan.ttf') format('truetype'); font-weight:400; font-display:swap; }
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { height:100%; overflow:hidden; }
+html, body { height:100%; overflow:hidden; touch-action:manipulation; }
 :root {
   --paper: #F8F6F0; --paper-dark: #EFECE3;
   --ink: #1A1814; --ink-light: #5A5348; --ink-faint: #9C9588;
@@ -37,11 +37,13 @@ body {
 }
 .phone-shell {
   width: 100%;
+  height: 100vh;
   height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   position: relative;
+  z-index: 1;
 }
 
 @media (min-width: 500px) {
@@ -59,7 +61,7 @@ body {
   }
 }
 body::before {
-  content: ''; position: fixed; inset: 0; opacity: 0.05; pointer-events: none; z-index: 9999;
+  content: ''; position: fixed; inset: 0; opacity: 0.05; pointer-events: none; z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.8'/%3E%3C/svg%3E");
 }
 .screen { display:none; }
@@ -132,7 +134,9 @@ body::before {
 .app-header {
   flex-shrink:0;
   display:flex; align-items:baseline; justify-content:space-between;
-  padding:16px 16px 8px; background:var(--paper);
+  padding:16px 16px 8px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  background:var(--paper);
 }
 .app-header .page-title {
   font-family:var(--font-body); font-size:18px; font-weight:700; letter-spacing:4px; color:var(--ink);
@@ -209,14 +213,14 @@ body::before {
   font-size:10px; color:var(--ink-faint); font-weight:300;
   letter-spacing:1px;
 }
-.fortune-dist .bar {
+.fortune-dist .dist-bar {
   display:inline-flex; height:4px; border-radius:2px; overflow:hidden; width:100%;
   margin-top:6px; gap:2px;
 }
-.fortune-dist .bar span { transition:width 0.4s; }
-.fortune-dist .bar .up { background:var(--ink); }
-.fortune-dist .bar .mid { background:var(--ink-faint); }
-.fortune-dist .bar .low { background:var(--seal); opacity:0.5; }
+.fortune-dist .dist-bar span { transition:width 0.4s; }
+.fortune-dist .dist-bar .up { background:var(--ink); }
+.fortune-dist .dist-bar .mid { background:var(--ink-faint); }
+.fortune-dist .dist-bar .low { background:var(--seal); opacity:0.5; }
 
 /* Data strip */
 .data-strip {
@@ -1083,7 +1087,7 @@ function renderFortuneDist(level) {
   if (allLow) {
     el.innerHTML = '连续 7 日签 · 宜休养生息';
   } else {
-    el.innerHTML = `近30日签运 · 上${Math.round(up*100)}% 中${Math.round(mid*100)}% 下${Math.round(low*100)}%<div class="bar"><span class="up" style="width:${Math.round(up*100)}%"></span><span class="mid" style="width:${Math.round(mid*100)}%"></span><span class="low" style="width:${Math.round(low*100)}%"></span></div>`;
+    el.innerHTML = `近30日签运 · 上${Math.round(up*100)}% 中${Math.round(mid*100)}% 下${Math.round(low*100)}%<div class="dist-bar"><span class="up" style="width:${Math.round(up*100)}%"></span><span class="mid" style="width:${Math.round(mid*100)}%"></span><span class="low" style="width:${Math.round(low*100)}%"></span></div>`;
   }
 }
 
