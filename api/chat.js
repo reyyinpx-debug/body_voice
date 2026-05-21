@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 当前语气：${tonePrompt}
 
 规则：
-- 20-80字
+- 直接回答，不要先复述数据
 - 语气必须严格匹配当前设定
 - 有数据就说数据，没有就诚实说不知道
 - 禁止emoji、禁止鸡汤、禁止过渡词`;
