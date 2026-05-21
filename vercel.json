@@ -1,13 +1,17 @@
 {
-  "functions": {
-    "api/generate.js": {
-      "maxDuration": 10
-    },
-    "api/chat.js": {
-      "maxDuration": 10
-    },
-    "api/fortune.js": {
-      "maxDuration": 10
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
     }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "api/$1" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ],
+  "functions": {
+    "api/generate.js": { "maxDuration": 10 },
+    "api/chat.js": { "maxDuration": 10 },
+    "api/fortune.js": { "maxDuration": 10 }
   }
 }
