@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体曰 · Body Voice</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#F8F6F0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="体曰">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+<style>
+@font-face { font-family:'Lishu'; src:url('fonts/lishu.ttf') format('truetype'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Zhuan'; src:url('fonts/zhuan.ttf') format('truetype'); font-weight:400; font-display:swap; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; }
+:root {
+  --paper: #F8F6F0; --paper-dark: #EFECE3;
+  --ink: #1A1814; --ink-light: #5A5348; --ink-faint: #9C9588;
+  --seal: #B33A2A; --seal-light: #D46A5A;
+  --border: #E3DDD0;
+  --font-body: 'Noto Serif SC', serif;
+  --font-ui: 'Noto Sans SC', sans-serif;
+  --font-seal: 'Ma Shan Zheng', cursive;
+  --font-lishu: 'Lishu', serif;
+  --font-zhuan: 'Zhuan', serif;
+}
+body {
+  background-color: var(--paper);
+  background-image: linear-gradient(rgba(248,246,240,0.65), rgba(248,246,240,0.65)), url('xuanzhi-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  color: var(--ink);
+  font-family: var(--font-ui); -webkit-font-smoothing: antialiased;
+}
+.phone-shell {
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+@media (min-width: 500px) {
+  html { background: #cfcbc0; }
+  .phone-shell {
+    margin: 28px auto; border: 6px solid #1a1a1a; border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.1);
+    height: 90vh; padding: 12px 0; width: 420px;
+  }
+  .phone-shell::after {
+    content: ''; position: absolute; top: -4px; left: 50%;
+    transform: translateX(-50%); width: 100px; height: 16px;
+    background: #1a1a1a; border-radius: 0 0 10px 10px; z-index: 10000;
+    pointer-events: none;
+  }
+}
+body::before {
+  content: ''; position: fixed; inset: 0; opacity: 0.05; pointer-events: none; z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.8'/%3E%3C/svg%3E");
+}
+.screen { display:none; }
+.screen.active { display:flex; flex-direction:column; flex:1; min-height:0; }
+
+/* Upload */
+#s-upload { padding:20px; align-items:center; justify-content:center; }
+#s-upload.active { overflow-y:auto; }
+.upload-card {
+  width:100%; background:var(--paper); border:1px solid var(--ink-faint);
+  padding:40px 28px 32px; box-shadow:0 2px 16px rgba(0,0,0,0.08);
+}
+.upload-card .brand {
+  font-family:var(--font-body); font-size:26px; font-weight:700;
+  letter-spacing:8px; text-align:center; color:var(--ink); margin-bottom:2px;
+}
+.upload-card .sub {
+  text-align:center; font-size:12px; color:var(--ink-faint);
+  font-weight:300; letter-spacing:2px; margin-bottom:32px;
+}
+.zone {
+  border:1px dashed var(--ink-faint); padding:36px 20px; text-align:center;
+  cursor:pointer; transition:all 200ms; background:var(--paper-dark);
+}
+.zone:hover { border-color:var(--ink-faint); background:var(--paper-dark); }
+.zone p { font-size:13px; color:var(--ink-light); }
+.zone .or { font-size:11px; color:var(--ink-faint); margin:10px 0; }
+.file-row {
+  margin-top:14px; padding:10px 14px; background:var(--paper-dark);
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:13px; border:1px solid var(--border);
+}
+.tone-row { margin-top:10px; display:flex; gap:6px; justify-content:center; }
+.btn {
+  font-family:var(--font-ui); border:1px solid var(--ink); background:transparent;
+  padding:8px 22px; font-size:13px; cursor:pointer; color:var(--ink);
+  letter-spacing:1px; transition:all 150ms;
+}
+.btn:hover { background:var(--ink); color:var(--paper); }
+.btn-small { padding:6px 16px; font-size:12px; }
+.btn-primary { background:var(--ink); color:var(--paper); }
+.btn-primary:hover { background:var(--seal); border-color:var(--seal); }
+.tone-btn { background:transparent; white-space:nowrap; flex:1; text-align:center; }
+.tone-btn.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.link-btn {
+  background:none; border:none; font-family:var(--font-ui);
+  font-size:12px; color:var(--ink-faint); cursor:pointer;
+  margin-top:16px; display:block; width:100%; text-align:center;
+}
+.link-btn:hover { color:var(--ink); }
+
+/* Loading */
+#s-loading { padding:20px; align-items:center; justify-content:center; }
+#s-loading.active { align-items:center; justify-content:center; overflow-y:auto; }
+#s-loading .inner { text-align:center; }
+#s-loading .spinner {
+  width:28px; height:28px; border:2px solid var(--border); border-top-color:var(--ink);
+  border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 20px;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+#s-loading p { font-size:14px; color:var(--ink-light); font-family:var(--font-body); }
+.track { width:200px; height:2px; background:var(--border); margin:12px auto; overflow:hidden; }
+.bar { height:100%; width:0%; background:var(--ink); transition:width 300ms; }
+#loadCount { font-size:11px; color:var(--ink-faint); margin-top:6px; }
+
+/* Main App — flex column, tab-bar inside the flow */
+#s-app { display:none; }
+#s-app.active { display:flex; flex-direction:column; flex:1; min-height:0; }
+
+.app-header {
+  flex-shrink:0;
+  display:flex; align-items:baseline; justify-content:space-between;
+  padding:16px 16px 8px; background:var(--paper);
+}
+.app-header .page-title {
+  font-family:var(--font-body); font-size:18px; font-weight:700; letter-spacing:4px; color:var(--ink);
+}
+.app-header .page-sub { font-size:11px; color:var(--ink-faint); font-weight:300; }
+
+.tab-content { display:none; padding:0 16px; }
+.tab-content.active { display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+#tab-fortune.active { justify-content:center; }
+#tab-feed.active, #tab-chat.active { background:rgba(255,255,255,0.55); }
+/* #tab-chat.active inherits from .tab-content.active */
+#tab-chat.active .chat-log { flex:1; }
+
+/* Bottom Tab Bar — sticky inside flex, no fixed positioning */
+.tab-bar {
+  flex-shrink:0; width:100%; display:flex;
+  background:rgba(248,246,240,0.92); backdrop-filter:blur(8px);
+  border-top:1px solid var(--border);
+  padding:6px 0 env(safe-area-inset-bottom,6px);
+}
+.tab-item {
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:6px 0; cursor:pointer; border:none; background:none;
+  font-family:var(--font-ui); font-size:9px; letter-spacing:1px;
+  color:var(--ink-faint); font-weight:300; transition:all 200ms;
+}
+.tab-item.active { color:var(--ink); font-weight:500; }
+.tab-item svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.5; }
+.tab-item.active svg { stroke-width:2; }
+
+/* Fortune Tab */
+.fortune-wrap { position:relative; margin:20px 0 24px; }
+.fortune-wrap::before {
+  content:''; position:absolute; left:-4px; top:16px; bottom:16px; width:2px;
+  background:repeating-linear-gradient(to bottom,var(--ink-faint) 0px,var(--ink-faint) 2px,transparent 2px,transparent 6px);
+  opacity:0.25;
+}
+.fortune-card {
+  background:#FCFAF5; border:1px solid var(--border);
+  padding:28px 24px 24px; margin-left:8px; position:relative;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+.fortune-card .seal {
+  position:absolute; top:26px; right:28px; width:48px; height:96px;
+  border:2px solid var(--seal); display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-zhuan); font-size:34px; color:var(--seal);
+  writing-mode:vertical-rl; letter-spacing:0;
+  transform:rotate(4deg); background:rgba(179,58,42,0.03);
+}
+.fortune-card .seal.low { border-color:var(--seal); color:var(--seal); }
+.fortune-card .title {
+  font-family:var(--font-lishu); font-size:36px; font-weight:400;
+  line-height:1.2; color:var(--ink); margin-bottom:16px;
+}
+.fortune-card .body-text {
+  font-family:var(--font-body); font-size:14px; line-height:2;
+  color:var(--ink-light); margin-bottom:18px; letter-spacing:0.5px;
+}
+.fortune-card .poem {
+  font-family:var(--font-body); font-size:14px; line-height:2.2; letter-spacing:0.5px;
+  color:var(--ink); margin-bottom:14px;
+}
+.fortune-card .summary {
+  font-family:var(--font-ui); font-size:12px; line-height:1.7;
+  color:var(--ink-light); margin-bottom:18px; font-weight:300;
+}
+.fortune-card .divider { border:none; border-top:1px solid var(--border); margin-bottom:14px; }
+.fortune-card .meta {
+  display:flex; justify-content:space-between;
+  font-size:11px; color:var(--ink-faint); font-weight:300;
+}
+.fortune-dist {
+  margin-top:10px; padding-top:8px; text-align:center;
+  font-size:10px; color:var(--ink-faint); font-weight:300;
+  letter-spacing:1px;
+}
+.fortune-dist .bar {
+  display:inline-flex; height:4px; border-radius:2px; overflow:hidden; width:100%;
+  margin-top:6px; gap:2px;
+}
+.fortune-dist .bar span { transition:width 0.4s; }
+.fortune-dist .bar .up { background:var(--ink); }
+.fortune-dist .bar .mid { background:var(--ink-faint); }
+.fortune-dist .bar .low { background:var(--seal); opacity:0.5; }
+
+/* Data strip */
+.data-strip {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--border); margin-bottom:28px;
+}
+.data-item { padding:14px 0; text-align:center; position:relative; }
+.data-item:not(:last-child)::after {
+  content:''; position:absolute; right:0; top:20%; height:60%; width:1px; background:var(--border);
+}
+.data-item .label { font-size:10px; color:var(--ink-faint); letter-spacing:2px; margin-bottom:6px; font-weight:300; }
+.data-item .value { font-family:var(--font-body); font-size:20px; font-weight:600; color:var(--ink); line-height:1; }
+.data-item .unit { font-size:10px; color:var(--ink-faint); }
+
+/* Feed Tab */
+.section-title {
+  display:flex; align-items:center; gap:8px; margin:20px 0 14px;
+}
+.section-title .line { flex:1; height:1px; background:var(--border); }
+.section-title .text {
+  font-size:11px; letter-spacing:3px; color:var(--ink-faint); font-weight:300; white-space:nowrap;
+}
+.feed-card { padding:16px 0; border-bottom:1px solid var(--border); }
+.feed-card:last-child { border-bottom:none; }
+.feed-card .top { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.feed-card .av {
+  width:24px; height:24px; border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-seal); font-size:13px; color:var(--ink-faint);
+}
+.feed-card .name { font-size:12px; font-weight:500; color:var(--ink); }
+.feed-card .date { font-size:11px; color:var(--ink-faint); margin-left:auto; font-weight:300; }
+.feed-card .content {
+  font-family:var(--font-body); font-size:14px; line-height:1.9;
+  color:var(--ink-light); margin-bottom:8px; letter-spacing:0.3px;
+}
+.feed-card .tags { display:flex; gap:8px; justify-content:flex-end; }
+.feed-card .tags span { font-size:10px; color:var(--ink-faint); font-weight:300; }
+.skelly .content { height:42px; background:linear-gradient(90deg,var(--border) 25%,var(--paper-dark) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.4s ease infinite; }
+@keyframes shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+.err .content { color:var(--seal); font-size:12px; }
+.feed-end { text-align:center; padding:32px; color:var(--ink-faint); font-size:12px; font-weight:300; }
+
+/* Chat Tab */
+.chat-log { margin:16px 0; min-height:200px; }
+.chat-msg { margin-bottom:16px; }
+.chat-msg.user { text-align:right; }
+.chat-msg .bubble {
+  display:inline-block; max-width:85%; padding:10px 14px;
+  font-size:13px; line-height:1.7; font-family:var(--font-body); text-align:left;
+}
+.chat-msg.body .bubble { background:var(--paper-dark); border:1px solid var(--border); color:var(--ink-light); }
+.chat-msg.user .bubble { background:var(--ink); color:var(--paper); }
+.chat-msg .time { font-size:10px; color:var(--ink-faint); margin-top:4px; display:block; }
+.chat-presets { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+.chat-preset-btn {
+  padding:10px 16px; border:1px solid var(--border); background:var(--paper);
+  font-family:var(--font-body); font-size:13px; color:var(--ink-light);
+  cursor:pointer; text-align:left; transition:all 150ms;
+}
+.chat-preset-btn:hover { border-color:var(--ink-faint); background:var(--paper-dark); }
+.chat-preset-btn:disabled { opacity:0.4; cursor:default; }
+.chat-input-wrap { display:flex; border:1px solid var(--border); margin-top:8px; }
+.chat-input-wrap input {
+  flex:1; padding:10px 14px; border:none; background:transparent;
+  font-family:var(--font-ui); font-size:13px; color:var(--ink); outline:none;
+}
+.chat-input-wrap input::placeholder { color:var(--ink-faint); font-weight:300; }
+.chat-input-wrap button {
+  padding:10px 16px; border:none; border-left:1px solid var(--border);
+  background:transparent; font-family:var(--font-ui); font-size:12px;
+  color:var(--ink); cursor:pointer; letter-spacing:1px;
+}
+.chat-input-wrap button:disabled { opacity:0.4; cursor:default; }
+.chat-placeholder { text-align:center; padding:40px 0; color:var(--ink-faint); font-size:13px; font-weight:300; line-height:1.8; }
+
+.fortune-skelly .seal { border-color:var(--border); color:transparent; }
+.fortune-skelly .title { color:transparent; background:var(--border); display:inline-block; width:120px; height:36px; border-radius:2px; }
+.fortune-skelly .poem { color:transparent; }
+.fortune-skelly .poem::before {
+  content:''; display:block; height:42px;
+  background:linear-gradient(90deg,var(--border) 25%,var(--paper-dark) 50%,var(--border) 75%);
+  background-size:200% 100%; animation:shimmer 1.4s ease infinite; border-radius:2px;
+}
+.fortune-skelly .summary { color:transparent; }
+.fortune-skelly .summary::before {
+  content:''; display:block; height:18px; width:70%; margin-top:8px;
+  background:linear-gradient(90deg,var(--border) 25%,var(--paper-dark) 50%,var(--border) 75%);
+  background-size:200% 100%; animation:shimmer 1.4s ease infinite; border-radius:2px;
+}
+
+/* Profile Tab */
+.profile-card { display:flex; align-items:center; gap:14px; padding:16px 0; }
+.profile-av {
+  width:48px; height:48px; border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-seal); font-size:24px; color:var(--ink); cursor:pointer;
+  transition:all 150ms; background:var(--paper);
+}
+.profile-av:hover { background:var(--paper-dark); border-color:var(--ink-faint); }
+.profile-info { flex:1; }
+.profile-name {
+  font-family:var(--font-body); font-size:18px; font-weight:700; color:var(--ink);
+  background:none; border:none; border-bottom:1px solid transparent; outline:none; width:100%;
+  padding:2px 0;
+}
+.profile-name:focus { border-bottom-color:var(--border); }
+.profile-label { display:block; font-size:11px; color:var(--ink-faint); font-weight:300; margin-top:2px; }
+.profile-divider { height:1px; background:var(--border); margin:4px 0; }
+.profile-setting { display:flex; align-items:center; gap:12px; padding:14px 0; flex-wrap:wrap; }
+.profile-setting-label { font-size:12px; color:var(--ink-light); font-weight:500; white-space:nowrap; }
+.profile-tone-row { display:flex; gap:4px; flex-wrap:wrap; }
+.btn-tone-sm {
+  font-family:var(--font-ui); font-size:11px; border:1px solid var(--border); background:transparent;
+  padding:4px 12px; cursor:pointer; color:var(--ink-faint); letter-spacing:1px;
+  transition:all 150ms;
+}
+.btn-tone-sm:hover { border-color:var(--ink-faint); color:var(--ink); }
+.btn-tone-sm.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+/* History Cards */
+.history-card {
+  display:flex; align-items:center; gap:10px; padding:12px 0;
+  border-bottom:1px solid var(--border); cursor:pointer; transition:all 150ms;
+}
+.history-card:hover { padding-left:6px; }
+.history-card:last-child { border-bottom:none; }
+.hist-seal {
+  width:22px; height:40px; border:1px solid var(--seal);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-zhuan); font-size:14px; color:var(--seal);
+  writing-mode:vertical-rl; flex-shrink:0;
+}
+.hist-seal.low { border-color:var(--seal); color:var(--seal); }
+.hist-title { font-family:var(--font-body); font-size:14px; color:var(--ink); flex:1; }
+.hist-date { font-size:11px; color:var(--ink-faint); font-weight:300; }
+</style>
+</head>
+<body>
+<div class="phone-shell">
+
+<!-- Upload -->
+<div id="s-upload" class="screen active">
+  <div class="upload-card">
+    <div class="brand">体 曰</div>
+    <p class="sub">子不语怪力乱神</p>
+    <div class="zone" id="dropzone">
+      <p>拖拽 Oura / Whoop / Apple Watch 数据到这里</p>
+      <p class="or">或</p>
+      <button class="btn btn-small" onclick="pickFile()">选择文件</button>
+      <input type="file" id="fileInput" accept=".csv,.xml" hidden>
+    </div>
+    <div id="fileRow" class="file-row" style="display:none">
+      <span id="fileName"></span>
+      <button class="btn btn-small btn-primary" onclick="startGen()">开始 →</button>
+    </div>
+    <div class="tone-row" id="toneRow" style="display:none">
+      <button class="btn btn-small tone-btn active" data-tone="guardian" onclick="selectTone('guardian')">守护者</button>
+      <button class="btn btn-small tone-btn" data-tone="lazy" onclick="selectTone('lazy')">懒得伺候</button>
+      <button class="btn btn-small tone-btn" data-tone="memorial" onclick="selectTone('memorial')">上奏者</button>
+      <button class="btn btn-small tone-btn" data-tone="logger" onclick="selectTone('logger')">记录者</button>
+    </div>
+    <button class="link-btn" onclick="loadSample()">🫀 先用示例数据试试</button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div id="s-loading" class="screen">
+  <div class="inner">
+    <div class="spinner"></div>
+    <p id="loadText">身体正在回想今天发生了什么…</p>
+    <div class="track"><div class="bar" id="loadBar"></div></div>
+    <p id="loadCount"></p>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="s-app" class="screen">
+  <div class="app-header">
+    <span class="page-title" id="pageTitle">今日签</span>
+    <span class="page-sub" id="pageSub"></span>
+  </div>
+
+  <!-- Fortune Tab -->
+  <div class="tab-content active" id="tab-fortune">
+    <div class="fortune-wrap" id="fortuneWrap">
+      <div class="fortune-card fortune-skelly" id="fortuneCard">
+        <div class="seal" id="fSeal">中</div>
+        <div class="title" id="fTitle">宜 收 藏</div>
+        <div class="body-text poem" id="fPoem"></div>
+        <div class="summary" id="fSummary"></div>
+        <hr class="divider">
+        <div class="meta">
+          <span id="fortuneData">—</span>
+          <span id="fortuneNo">—</span>
+        </div>
+        <div class="fortune-dist" id="fDist"></div>
+      </div>
+    </div>
+    <div id="dataStrip" class="data-strip"></div>
+  </div>
+
+  <!-- Log Tab -->
+  <div class="tab-content" id="tab-feed">
+    <div class="section-title">
+      <span class="line"></span>
+      <span class="text">身 体 日 志</span>
+      <span class="line"></span>
+    </div>
+    <div id="feed"></div>
+    <div class="feed-end" id="feedEnd" style="display:none">— 已加载全部身体日志 —</div>
+  </div>
+
+  <!-- Chat Tab -->
+  <div class="tab-content" id="tab-chat">
+    <div class="section-title" style="margin-top:16px">
+      <span class="line"></span>
+      <span class="text">和 身 体 对 话</span>
+      <span class="line"></span>
+    </div>
+    <div class="chat-log" id="chatLog">
+      <div class="chat-placeholder" id="chatPlaceholder">
+        问身体一个问题<br>它会用今天的数据回答你
+      </div>
+    </div>
+    <div class="chat-presets">
+      <button class="chat-preset-btn" onclick="askBody('我今天状态怎么样？')">我今天状态怎么样？</button>
+      <button class="chat-preset-btn" onclick="askBody('昨晚睡够了吗？')">昨晚睡够了吗？</button>
+      <button class="chat-preset-btn" onclick="askBody('今天运动量怎么样？')">今天运动量怎么样？</button>
+    </div>
+    <div class="chat-input-wrap">
+      <input id="chatInput" type="text" placeholder="问身体一个问题…" onkeydown="if(event.key==='Enter')sendChat()">
+      <button id="chatSendBtn" onclick="sendChat()">发送</button>
+    </div>
+  </div>
+
+  <!-- Profile Tab -->
+  <div class="tab-content" id="tab-profile">
+    <div class="profile-section">
+      <div class="profile-card">
+        <div class="profile-av" id="profileAv" onclick="changeAvatar()">身</div>
+        <div class="profile-info">
+          <input class="profile-name" id="profileName" value="我" maxlength="10" onchange="saveProfile()">
+          <span class="profile-label">点击名字可编辑</span>
+        </div>
+      </div>
+      <div class="profile-divider"></div>
+      <div class="profile-setting">
+        <span class="profile-setting-label">当前语气</span>
+        <div class="profile-tone-row" id="profileToneRow">
+          <button class="btn-tone-sm active" data-tone="guardian" onclick="selectTone('guardian');saveProfile()">守护者</button>
+          <button class="btn-tone-sm" data-tone="lazy" onclick="selectTone('lazy');saveProfile()">懒得伺候</button>
+          <button class="btn-tone-sm" data-tone="memorial" onclick="selectTone('memorial');saveProfile()">上奏者</button>
+          <button class="btn-tone-sm" data-tone="logger" onclick="selectTone('logger');saveProfile()">记录者</button>
+        </div>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:8px">
+      <span class="line"></span>
+      <span class="text">历 史 签 文</span>
+      <span class="line"></span>
+    </div>
+    <div id="historyFortunes"></div>
+    <div class="feed-end" id="historyEnd" style="display:none">— 暂无签文记录 —</div>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-item active" data-tab="fortune" onclick="switchTab('fortune')">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>今日签</span>
+    </button>
+    <button class="tab-item" data-tab="feed" onclick="switchTab('feed')">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zM4 10h16v2H4zM4 16h12v2H4z"/></svg>
+      <span>日志</span>
+    </button>
+    <button class="tab-item" data-tab="chat" onclick="switchTab('chat')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>对话</span>
+    </button>
+    <button class="tab-item" data-tab="profile" onclick="switchTab('profile')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 00-16 0"/></svg>
+      <span>我</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ===== Parser =====
+function detectDevice(heads) {
+  const all = heads.join(' ');
+  if (all.includes('Total Sleep Duration') || all.includes('Average HRV')) return 'oura';
+  if (all.includes('Heart rate variability (ms)') && all.includes('Asleep duration (min)')) return 'whoop';
+  if (all.includes('HKQuantityTypeIdentifier')) return 'apple_watch';
+  return 'unknown';
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const heads = lines[0].split(',').map(h => h.trim());
+  const device = detectDevice(heads);
+  if (device === 'apple_watch') {
+    const rows = parseAppleWatchCSV(text);
+    return { rows, device };
+  }
+  const rows = [];
+  for (let i=1; i<lines.length; i++) {
+    const vals = lines[i].split(',');
+    if (vals.length < heads.length) continue;
+    const row = {};
+    heads.forEach((h,j) => {
+      let v = vals[j]?.trim();
+      row[h] = (v === '' || v === 'None') ? null : v;
+    });
+    rows.push(row);
+  }
+  return { rows, device };
+}
+
+function detectAppleWatchCols(heads) {
+  const lower = heads.map(h => h.toLowerCase());
+  return {
+    date: heads[lower.findIndex(h => /^date$|startdate|creationdate|day/.test(h))] || heads[0],
+    type: heads[lower.findIndex(h => /type|identifier|name/.test(h))] || 'type',
+    value: heads[lower.findIndex(h => /^value$|val/.test(h))] || 'value',
+    unit: heads.find((h, i) => /^unit$/i.test(h)) || null,
+  };
+}
+
+const AW_TYPE_MAP = {
+  restingheartrate: 'avgRHR',
+  heartratevariabilitysdnn: 'avgHRV',
+  stepcount: 'steps',
+  sleepanalysis: 'totalSleep',
+  deepsleep: 'deepSleep',
+  sleepingwristtemperature: 'tempDev',
+};
+
+function parseAppleWatchCSV(text) {
+  const lines = text.trim().split('\n');
+  const heads = lines[0].split(',').map(h => h.trim());
+  const cols = detectAppleWatchCols(heads);
+  const dateIdx = heads.indexOf(cols.date);
+  const typeIdx = heads.indexOf(cols.type);
+  const valIdx = heads.indexOf(cols.value);
+  const unitIdx = cols.unit ? heads.indexOf(cols.unit) : -1;
+
+  const daily = {};
+  for (let i = 1; i < lines.length; i++) {
+    const vals = lines[i].split(',');
+    if (vals.length <= Math.max(dateIdx, typeIdx, valIdx)) continue;
+
+    const rawDate = vals[dateIdx]?.trim();
+    if (!rawDate) continue;
+    const date = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate.split(' ')[0];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+
+    const rawType = vals[typeIdx]?.trim() || '';
+    const typeKey = rawType.replace(/^HKQuantityTypeIdentifier|^HKCategoryTypeIdentifier|^HKCategoryValue|^Apple/g, '').toLowerCase();
+    const target = AW_TYPE_MAP[typeKey];
+    if (!target) continue;
+
+    const rawVal = vals[valIdx]?.trim();
+    if (!rawVal || rawVal === '') continue;
+    let num = parseFloat(rawVal);
+    if (isNaN(num)) continue;
+
+    if (!daily[date]) daily[date] = {};
+    const day = daily[date];
+
+    if (target === 'avgRHR') {
+      day.avgRHR_vals = day.avgRHR_vals || [];
+      day.avgRHR_vals.push(num);
+    } else if (target === 'totalSleep') {
+      // SleepAnalysis values are in hours from HealthKit → convert to minutes
+      day.totalSleep = (day.totalSleep || 0) + (unitIdx >= 0 && vals[unitIdx]?.trim().includes('hour') ? num * 60 : num);
+    } else if (target === 'deepSleep') {
+      day.deepSleep = (day.deepSleep || 0) + (unitIdx >= 0 && vals[unitIdx]?.trim().includes('hour') ? num * 60 : num);
+    } else if (target === 'avgHRV') {
+      day.avgHRV_vals = day.avgHRV_vals || [];
+      day.avgHRV_vals.push(num);
+    } else if (target === 'tempDev') {
+      day.tempDev = num;
+    } else if (target === 'steps') {
+      day.steps = (day.steps || 0) + Math.round(num);
+    }
+  }
+
+  return Object.keys(daily).sort().map(date => {
+    const d = daily[date];
+    const avgRHR = d.avgRHR_vals ? Math.round(d.avgRHR_vals.reduce((a, b) => a + b, 0) / d.avgRHR_vals.length) : null;
+    const avgHRV = d.avgHRV_vals ? Math.round(d.avgHRV_vals.reduce((a, b) => a + b, 0) / d.avgHRV_vals.length) : null;
+    return {
+      date,
+      totalSleep: d.totalSleep ? Math.round(d.totalSleep) : null,
+      deepSleep: d.deepSleep ? Math.round(d.deepSleep) : null,
+      remSleep: null, lightSleep: null,
+      avgHRV, avgRHR,
+      steps: d.steps || null,
+      tempDev: d.tempDev !== undefined ? Math.round(d.tempDev * 100) / 100 : null,
+      sleepScore: null, readinessScore: null, activityScore: null,
+      source: 'apple_watch',
+    };
+  });
+}
+
+// ===== Apple Health XML Parser (streaming) =====
+function readFileChunk(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsText(blob);
+  });
+}
+
+function extractAttr(tag, name) {
+  const s = ' ' + name + '="';
+  const i = tag.indexOf(s);
+  if (i < 0) return null;
+  const start = i + s.length;
+  const end = tag.indexOf('"', start);
+  return end < 0 ? null : tag.substring(start, end);
+}
+
+async function parseAppleHealthXML(file, onProgress) {
+  const CHUNK = 4 * 1024 * 1024;
+  const total = file.size;
+  let offset = 0, buffer = '';
+  const daily = {};
+  let recCount = 0;
+
+  const RELEVANT = new Set([
+    'HKQuantityTypeIdentifierHeartRateVariabilitySDNN',
+    'HKQuantityTypeIdentifierRestingHeartRate',
+    'HKQuantityTypeIdentifierStepCount',
+    'HKCategoryTypeIdentifierSleepAnalysis',
+    'HKQuantityTypeIdentifierAppleSleepingWristTemperature',
+  ]);
+
+  function isOtherDevice(src) {
+    if (!src) return false;
+    const l = src.toLowerCase();
+    return l.includes('charles') || l.includes('卫杨');
+  }
+
+  function processChunk() {
+    let pos = 0;
+    while (true) {
+      const ri = buffer.indexOf('<Record ', pos);
+      if (ri < 0) break;
+      const ci = buffer.indexOf('/>', ri);
+      if (ci < 0) {
+        buffer = buffer.substring(ri);
+        return;
+      }
+      pos = ci + 2;
+      const tag = buffer.substring(ri, ci + 2);
+      if (tag.length > 5000) continue;
+
+      const type = extractAttr(tag, 'type');
+      if (!type || !RELEVANT.has(type)) continue;
+      if (isOtherDevice(extractAttr(tag, 'sourceName'))) continue;
+
+      const v = extractAttr(tag, 'value');
+      if (v == null) continue;
+      const num = parseFloat(v);
+      if (isNaN(num)) continue;
+
+      const sd = extractAttr(tag, 'startDate');
+      if (!sd) continue;
+      const date = sd.split(' ')[0];
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+
+      if (!daily[date]) daily[date] = {};
+      const d = daily[date];
+      recCount++;
+
+      switch (type) {
+        case 'HKQuantityTypeIdentifierHeartRateVariabilitySDNN':
+          (d._hrv = d._hrv || []).push(num);
+          break;
+        case 'HKQuantityTypeIdentifierRestingHeartRate':
+          (d._rhr = d._rhr || []).push(num);
+          break;
+        case 'HKQuantityTypeIdentifierStepCount':
+          d.steps = (d.steps || 0) + Math.round(num);
+          break;
+        case 'HKQuantityTypeIdentifierAppleSleepingWristTemperature': {
+          const u = extractAttr(tag, 'unit');
+          let tc = num;
+          if (u === 'degF') tc = (num - 32) * 5 / 9;
+          (d._tmp = d._tmp || []).push(tc);
+          break;
+        }
+        case 'HKCategoryTypeIdentifierSleepAnalysis': {
+          const ed = extractAttr(tag, 'endDate');
+          if (!ed) break;
+          const dur = (new Date(ed) - new Date(sd)) / 60000;
+          if (dur <= 0 || dur > 1440) break;
+          if (v.includes('Asleep')) {
+            d.totalSleep = (d.totalSleep || 0) + dur;
+            if (v.includes('AsleepDeep')) d.deepSleep = (d.deepSleep || 0) + dur;
+          }
+          break;
+        }
+      }
+    }
+    buffer = '';
+  }
+
+  while (offset < total) {
+    const end = Math.min(offset + CHUNK, total);
+    buffer += await readFileChunk(file.slice(offset, end));
+    offset = end;
+    processChunk();
+    if (onProgress) onProgress(Math.round(offset / total * 100));
+    if (offset < total) await new Promise(r => setTimeout(r, 0));
+  }
+
+  // Compute temp baseline from all readings (Celsius)
+  const allTemps = Object.values(daily).flatMap(d => d._tmp || []);
+  const tempBase = allTemps.length > 10
+    ? allTemps.sort((a,b) => a-b)[Math.floor(allTemps.length / 2)] // median
+    : null;
+
+  return Object.keys(daily).sort().map(date => {
+    const d = daily[date];
+    const avgTemp = d._tmp ? d._tmp.reduce((a,b) => a+b, 0) / d._tmp.length : null;
+    return {
+      date,
+      totalSleep: d.totalSleep ? Math.round(d.totalSleep) : null,
+      deepSleep: d.deepSleep ? Math.round(d.deepSleep) : null,
+      remSleep: null, lightSleep: null,
+      avgHRV: d._hrv ? Math.round(d._hrv.reduce((a,b) => a+b, 0) / d._hrv.length) : null,
+      avgRHR: d._rhr ? Math.round(d._rhr.reduce((a,b) => a+b, 0) / d._rhr.length * 100) / 100 : null,
+      steps: d.steps || null,
+      tempDev: avgTemp !== null && tempBase !== null
+        ? Math.round((avgTemp - tempBase) * 100) / 100
+        : null,
+      sleepScore: null, readinessScore: null, activityScore: null,
+      source: 'apple_watch',
+    };
+  });
+}
+
+function detectOuraCols(heads) {
+  const m = {};
+  const map = {
+    'Total Sleep Duration': 'totalSleep', 'Deep Sleep Duration': 'deepSleep',
+    'REM Sleep Duration': 'remSleep', 'Light Sleep Duration': 'lightSleep',
+    'Average HRV': 'avgHRV', 'Average Resting Heart Rate': 'avgRHR',
+    'Steps': 'steps', 'Temperature Deviation (°C)': 'tempDev',
+    'Sleep Score': 'sleepScore', 'Total Sleep Score': 'sleepScore',
+    'Readiness Score': 'readinessScore', 'Activity Score': 'activityScore',
+  };
+  for (const h of heads) {
+    if (map[h]) m[map[h]] = h;
+  }
+  // Also check for date/Date
+  m.date = heads.find(h => /^date$/i.test(h)) || 'date';
+  return m;
+}
+
+function detectWhoopCols(heads) {
+  const m = {};
+  const map = {
+    'Asleep duration (min)': 'totalSleep', 'Deep (SWS) duration (min)': 'deepSleep',
+    'REM duration (min)': 'remSleep', 'Light sleep duration (min)': 'lightSleep',
+    'Heart rate variability (ms)': 'avgHRV', 'Resting heart rate (bpm)': 'avgRHR',
+    'Skin temp (celsius)': 'tempDev', 'Sleep performance %': 'sleepScore',
+    'Recovery score %': 'readinessScore', 'Day Strain': 'activityScore',
+  };
+  for (const h of heads) {
+    if (map[h]) m[map[h]] = h;
+  }
+  m.date = heads.find(h => /cycle start time|cdate/i.test(h)) || heads.find(h => /^date$/i.test(h)) || 'Cycle start time';
+  return m;
+}
+
+function toSummary(r, device) {
+  const get = (k) => r[k] !== null && r[k] !== undefined ? r[k] : null;
+  const min = (k) => get(k) !== null ? Math.round(parseInt(get(k))) : null;
+  const m = device === 'whoop' ? detectWhoopCols(Object.keys(r)) : detectOuraCols(Object.keys(r));
+
+  const rawDate = get(m.date);
+  let date = rawDate;
+  if (rawDate) date = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate.split(' ')[0];
+
+  const totalSleep = min(m.totalSleep);
+  const deepSleep = min(m.deepSleep);
+  const avgHRV = get(m.avgHRV);
+  const avgRHR = get(m.avgRHR);
+  const steps = get(m.steps);
+  const tempDev = get(m.tempDev);
+  // Whoop skin temp needs baseline adjustment — use raw for now
+  const sleepScore = get(m.sleepScore);
+  const readinessScore = get(m.readinessScore);
+  const activityScore = get(m.activityScore);
+
+  return {
+    date, totalSleep, deepSleep,
+    remSleep: min(m.remSleep), lightSleep: min(m.lightSleep),
+    avgHRV: avgHRV ? Math.round(Number(avgHRV)) : null,
+    avgRHR: avgRHR ? Math.round(Number(avgRHR) * 100) / 100 : null,
+    steps: steps ? Math.round(Number(steps)) : null,
+    tempDev: tempDev ? Math.round(Number(tempDev) * 100) / 100 : null,
+    sleepScore: sleepScore ? Math.round(Number(sleepScore)) : null,
+    readinessScore: readinessScore ? Math.round(Number(readinessScore)) : null,
+    activityScore: activityScore ? Math.round(Number(activityScore)) : null,
+    source: device,
+  };
+}
+
+function dayPrompt(s) {
+  return [`Date: ${s.date}`,
+    s.totalSleep !== null ? `Sleep: ${s.totalSleep}min total (deep ${s.deepSleep??'?'}min, light ${s.lightSleep??'?'}min, REM ${s.remSleep??'?'}min)` : null,
+    s.avgHRV !== null ? `HRV: ${s.avgHRV}ms` : null,
+    s.avgRHR !== null ? `Resting HR: ${s.avgRHR} bpm` : null,
+    s.steps !== null ? `Steps: ${s.steps}` : null,
+    s.tempDev !== null ? `Temp: ${s.tempDev}°C` : null,
+    s.sleepScore !== null ? `Sleep Score: ${s.sleepScore}/100` : null,
+    s.readinessScore !== null ? `Readiness: ${s.readinessScore}/100` : null,
+  ].filter(Boolean).join('\n');
+}
+
+function dayPromptShort(s) {
+  return [s.date,
+    s.totalSleep !== null ? `sleep ${Math.floor(s.totalSleep/60)}h${s.totalSleep%60}m` : null,
+    s.avgHRV !== null ? `HRV ${s.avgHRV}ms` : null,
+    s.avgRHR !== null ? `HR ${s.avgRHR}bpm` : null,
+    s.steps !== null ? `${parseInt(s.steps).toLocaleString()}steps` : null,
+    s.tempDev !== null ? `temp ${s.tempDev > 0 ? '+' : ''}${s.tempDev}°C` : null,
+  ].filter(Boolean).join(', ');
+}
+
+// ===== State =====
+let currentFile = null, allSummaries = [], _generating = false, currentTone = 'guardian';
+
+// ===== DOM =====
+const $ = id => document.getElementById(id);
+const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); };
+
+// ===== File =====
+function pickFile() { $('fileInput').click(); }
+$('fileInput').addEventListener('change', () => { if ($('fileInput').files[0]) handleFile($('fileInput').files[0]); });
+$('dropzone').addEventListener('dragover', e => { e.preventDefault(); $('dropzone').style.borderColor = 'var(--ink-faint)'; });
+$('dropzone').addEventListener('dragleave', () => { $('dropzone').style.borderColor = ''; });
+$('dropzone').addEventListener('drop', e => { e.preventDefault(); $('dropzone').style.borderColor = ''; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+function handleFile(f) {
+  const ext = f.name.split('.').pop().toLowerCase();
+  if (!['csv','xml'].includes(ext)) { alert('请上传 CSV 或 XML 文件'); return; }
+  $('fileName').textContent = '📄 ' + f.name;
+  $('fileRow').style.display = 'flex';
+  $('toneRow').style.display = 'flex';
+  currentFile = f;
+}
+
+function selectTone(tone) {
+  currentTone = tone;
+  document.querySelectorAll('.tone-btn, .btn-tone-sm').forEach(b => b.classList.toggle('active', b.dataset.tone === tone));
+}
+
+async function loadSample() {
+  $('fileName').textContent = '📄 oura_2026-02-21_2026-05-21_trends.csv（示例数据）';
+  $('fileRow').style.display = 'flex';
+  $('toneRow').style.display = 'flex';
+  const r = await fetch('oura_2026-02-21_2026-05-21_trends.csv');
+  currentFile = new File([await r.blob()], 'oura_2026-02-21_2026-05-21_trends.csv', { type:'text/csv' });
+}
+
+// ===== Generate =====
+async function startGen() {
+  if (!currentFile) { alert('请先选择数据文件'); return; }
+  if (_generating) return;
+  _generating = true;
+  show('s-loading');
+
+  if (currentFile.name.toLowerCase().endsWith('.xml')) {
+    $('loadText').textContent = '正在解析 Apple Health 数据…';
+    allSummaries = await parseAppleHealthXML(currentFile, pct => {
+      $('loadBar').style.width = pct + '%';
+      $('loadCount').textContent = '解析中 ' + pct + '%';
+    });
+  } else {
+    $('loadText').textContent = '身体正在翻阅过去的记忆…';
+    const text = await currentFile.text();
+    const { rows, device } = parseCSV(text);
+    allSummaries = (device === 'apple_watch' ? rows : rows.map(r => toSummary(r, device)));
+  }
+  allSummaries.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const total = allSummaries.length;
+  $('loadText').textContent = '身体正在生成每日签文…';
+
+  // Send last 10 days to AI for richer feed
+  const genCount = Math.min(10, total);
+  const genPrompts = allSummaries.slice(0, genCount).map(dayPrompt);
+
+  try {
+    const res = await fetch('/api/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ summaries: genPrompts, tone: currentTone })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || `HTTP ${res.status}`); }
+    const data = await res.json();
+    const posts = Array.isArray(data.posts) ? data.posts : [];
+
+    // Build feed: latest 6 days, newest first
+    const feed = $('feed');
+    feed.innerHTML = '';
+    const normD = d => (d||'').replace(/\//g,'-').split('T')[0];
+    const postMap = {};
+    for (const p of posts) {
+      const pd = normD(p.date);
+      postMap[pd] = p;
+    }
+    const maxFeed = 6;
+    for (let i = 0; i < Math.min(maxFeed, allSummaries.length); i++) {
+      const s = allSummaries[i];
+      const p = postMap[s.date] || postMap[normD(s.date)];
+      const card = document.createElement('div');
+      card.className = 'feed-card';
+      if (p) {
+        card.innerHTML = `<div class="top"><div class="av">身</div><span class="name">${bodyName()}</span><span class="date">${fmtDate(p.date)} ${p.time || ''}</span></div><div class="content">${p.post}</div>`;
+      } else {
+        const tags = buildTags(s);
+        if (!tags.length) continue;
+        const summary = buildDataSummary(s);
+        card.innerHTML = `<div class="top"><div class="av">身</div><span class="name">${bodyName()}</span><span class="date">${fmtDate(s.date)}</span></div><div class="content" style="font-size:11px;color:var(--ink-faint);font-weight:300">${summary}</div>`;
+        const el = document.createElement('div');
+        el.className = 'tags'; el.innerHTML = tags.map(t => `<span>${t}</span>`).join('');
+        card.appendChild(el);
+      }
+      const tags = buildTags(s);
+      if (p && tags.length) {
+        const el = document.createElement('div');
+        el.className = 'tags'; el.innerHTML = tags.map(t => `<span>${t}</span>`).join('');
+        card.appendChild(el);
+      }
+      feed.appendChild(card);
+    }
+
+    // Fortune via /api/fortune
+    if (total > 0) {
+      const fortune = await fetchFortune(allSummaries[0]);
+      renderFortune(fortune, allSummaries[0]);
+      storeFortune(fortune, allSummaries[0].date);
+    }
+
+    if (total > 0) renderDataStrip(allSummaries[0]);
+
+  } catch (e) {
+    console.error(e);
+    // Offline fallback: show data-only feed + local fortune
+    const feed = $('feed');
+    feed.innerHTML = '';
+    const maxFeed = 6;
+    for (let i = 0; i < Math.min(maxFeed, allSummaries.length); i++) {
+      const s = allSummaries[i];
+      const tags = buildTags(s);
+      const summary = buildDataSummary(s);
+      const card = document.createElement('div');
+      card.className = 'feed-card err';
+      card.innerHTML = `<div class="top"><div class="av">身</div><span class="name">${bodyName()}</span><span class="date">${fmtDate(s.date)}</span></div><div class="content" style="font-size:11px;color:var(--ink-faint);font-weight:300">${summary}</div>`;
+      if (tags.length) { const el = document.createElement('div'); el.className = 'tags'; el.innerHTML = tags.map(t => `<span>${t}</span>`).join(''); card.appendChild(el); }
+      feed.appendChild(card);
+    }
+    if (total > 0) {
+      const fortune = await fetchFortune(allSummaries[0]);
+      renderFortune(fortune, allSummaries[0]);
+      storeFortune(fortune, allSummaries[0].date);
+    }
+  }
+
+  _generating = false;
+  $('loadBar').style.width = '100%';
+  $('loadCount').textContent = `${total} / ${total}`;
+  $('pageSub').textContent = `${total} 天`;
+  $('feedEnd').style.display = 'block';
+  show('s-app');
+  switchTab(total > 0 ? 'fortune' : 'feed');
+}
+
+async function fetchFortune(s) {
+  const { prev, stepsStreak3 } = getPrevAndStreak(s);
+  const score = computeFortuneScore(s, prev, stepsStreak3);
+  const level = fortLevel(score);
+  const data = dayPromptShort(s);
+  try {
+    const res = await fetch('/api/fortune', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ data, score, level })
+    });
+    if (!res.ok) throw new Error('API error');
+    const r = await res.json();
+    return { level, title: r.title, poem: r.poem, summary: r.summary, score, data_evidence: buildDataEvidence(s) };
+  } catch {
+    return generateLocalFortune(s);
+  }
+}
+
+function cDate(d) {
+  const months = ['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const days = ['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+    '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+    '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十','卅一'];
+  return `${months[d.getMonth()+1]}${days[d.getDate()]}`;
+}
+
+function renderFortune(fortune, latest) {
+  const card = $('fortuneCard');
+  card.classList.remove('fortune-skelly');
+
+  // Support both new (level/title/poem/summary) and old (seal/title/body) formats
+  const level = fortune.level || fortune.seal || '中签';
+  const title = fortune.title || '宜静养';
+  const poem = fortune.poem || '';
+  const summary = fortune.summary || fortune.body || '';
+
+  const sealEl = $('fSeal');
+  sealEl.textContent = level;
+  sealEl.classList.toggle('low', level.includes('下'));
+  $('fTitle').textContent = title;
+
+  if (poem) {
+    $('fPoem').innerHTML = poem.split('/').map(l => l.trim()).filter(Boolean).join('<br>');
+    $('fPoem').style.display = 'block';
+  } else {
+    $('fPoem').style.display = 'none';
+  }
+  $('fSummary').textContent = summary;
+
+  const dataEv = fortune.data_evidence || '';
+  const parts = dataEv ? [dataEv] : [];
+  if (!dataEv && latest) {
+    if (latest.deepSleep !== null) parts.push(`深睡 ${latest.deepSleep}min`);
+    if (latest.avgHRV !== null) parts.push(`HRV ${latest.avgHRV}`);
+  }
+  const src = latest && latest.source ? ` · 来源 ${sourceLabel(latest.source)}` : '';
+  $('fortuneData').textContent = (parts.join(' · ') || '—') + src;
+  if (latest && latest.date) {
+    const d = new Date(latest.date);
+    $('fortuneNo').textContent = `签·${cDate(d)}`;
+  }
+  renderFortuneDist(level);
+}
+
+function renderFortuneDist(level) {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('body_voice_fortunes') || '[]'); } catch {}
+  // Include current day
+  const total = list.length + 1;
+  const cur = (l) => l.includes('上') ? '上' : l.includes('中') ? '中' : '下';
+  const up = (list.filter(i => cur(i.fortune.level||i.fortune.seal||'').includes('上')).length + (level.includes('上')?1:0)) / total;
+  const mid = (list.filter(i => cur(i.fortune.level||i.fortune.seal||'').includes('中')).length + (level.includes('中')?1:0)) / total;
+  const low = (list.filter(i => cur(i.fortune.level||i.fortune.seal||'').includes('下')).length + (level.includes('下')?1:0)) / total;
+  // Check 7-day 下签 streak
+  const recent = list.slice(0, 6);
+  const streak = recent.every(i => cur(i.fortune.level||i.fortune.seal||'').includes('下'));
+  const allLow = level.includes('下') && recent.length >= 6 && streak;
+  const el = $('fDist');
+  if (!el) return;
+  if (allLow) {
+    el.innerHTML = '连续 7 日签 · 宜休养生息';
+  } else {
+    el.innerHTML = `近30日签运 · 上${Math.round(up*100)}% 中${Math.round(mid*100)}% 下${Math.round(low*100)}%<div class="bar"><span class="up" style="width:${Math.round(up*100)}%"></span><span class="mid" style="width:${Math.round(mid*100)}%"></span><span class="low" style="width:${Math.round(low*100)}%"></span></div>`;
+  }
+}
+
+function renderDataStrip(latest) {
+  const items = [];
+  if (latest.totalSleep !== null) {
+    const h = Math.floor(latest.totalSleep/60);
+    items.push({ label:'睡眠', value:`${h}.${Math.round((latest.totalSleep%60)/6)}`, unit:'h' });
+  }
+  if (latest.avgHRV !== null) items.push({ label:'HRV', value:latest.avgHRV, unit:'ms' });
+  if (latest.avgRHR !== null) items.push({ label:'心率', value:latest.avgRHR, unit:'bpm' });
+  if (latest.tempDev !== null) {
+    const s = latest.tempDev > 0 ? '+' : '';
+    items.push({ label:'体温', value:`${s}${latest.tempDev}`, unit:'°C' });
+  }
+  $('dataStrip').innerHTML = items.map(item =>
+    `<div class="data-item"><div class="label">${item.label}</div><div class="value">${item.value}</div><div class="unit">${item.unit}</div></div>`
+  ).join('');
+}
+
+function computeFortuneScore(s, prev, stepsStreak3) {
+  let score = 0;
+  // 5 base fields, 1 point each
+  if (s.deepSleep !== null && s.deepSleep >= 90) score += 1;
+  if (s.sleepScore !== null && s.sleepScore >= 70) score += 1;
+  if (s.avgHRV !== null && s.avgHRV >= 40) score += 1;
+  if (s.avgRHR !== null && s.avgRHR <= 65) score += 1;
+  if (s.tempDev !== null && Math.abs(s.tempDev) <= 0.3) score += 1;
+  // Bonus — single day
+  if (s.steps !== null && s.steps >= 8000) score += 0.5;
+  // Bonus — 3-day step streak
+  if (stepsStreak3) score += 1;
+  // Bonus — vs yesterday
+  if (prev) {
+    if (prev.deepSleep !== null && s.deepSleep !== null) {
+      const diff = s.deepSleep - prev.deepSleep;
+      if (diff >= 30) score += 1;
+      else if (diff >= 15) score += 0.5;
+    }
+    if (prev.sleepScore !== null && s.sleepScore !== null && s.sleepScore - prev.sleepScore >= 5) score += 0.5;
+    if (prev.avgHRV !== null && s.avgHRV !== null) {
+      const drop = prev.avgHRV - s.avgHRV;
+      if (drop >= 10) score -= 1;
+      else if (drop >= 5) score -= 0.5;
+    }
+  }
+  // Penalty
+  if (s.tempDev !== null && Math.abs(s.tempDev) >= 0.5) score -= 1;
+  return Math.max(0, Math.min(8, score));
+}
+
+function fortLevel(score) {
+  if (score >= 5) return '上签';
+  if (score >= 3) return '中签';
+  return '下签';
+}
+
+function matchFortuneTitle(level, s) {
+  const D = s.deepSleep !== null ? s.deepSleep : 0;
+  const H = s.avgHRV !== null ? s.avgHRV : 0;
+  const R = s.avgRHR !== null ? s.avgRHR : 999;
+  const T = s.tempDev !== null ? Math.abs(s.tempDev) : 0;
+  const steps = s.steps !== null ? s.steps : 0;
+  const sleepScore = s.sleepScore !== null ? s.sleepScore : 0;
+
+  const pools = {
+    upper: [
+      { t: '阳气回升', m: () => true },
+      { t: '静水深流', m: () => D >= 90 && H >= 40 },
+      { t: '梦稳心安', m: () => D >= 90 },
+      { t: '如沐春风', m: () => H >= 50 },
+      { t: '厚积薄发', m: () => sleepScore >= 80 },
+      { t: '风平浪静', m: () => R <= 58 },
+      { t: '蓄势待发', m: () => steps >= 8000 },
+      { t: '形神俱安', m: () => D >= 90 && H >= 40 && R <= 65 },
+      { t: '根基稳固', m: () => s.totalSleep !== null && D / s.totalSleep >= 0.4 },
+    ],
+    middle: [
+      { t: '按兵不动', m: () => true },
+      { t: '平常心', m: () => H >= 30 && H < 40 },
+      { t: '量力而行', m: () => steps >= 8000 && D < 90 },
+      { t: '余地', m: () => D < 60 },
+      { t: '正身', m: () => steps >= 5000 && D >= 60 },
+      { t: '稳扎稳打', m: () => steps >= 5000 },
+      { t: '调息', m: () => R > 65 && R <= 72 },
+    ],
+    lower: [
+      { t: '休养生息', m: () => s.totalSleep !== null && s.totalSleep < 300 },
+      { t: '潜龙勿用', m: () => s.totalSleep !== null && s.totalSleep < 300 && H < 25 },
+      { t: '镜水无波', m: () => H < 20 },
+      { t: '稍安勿躁', m: () => R > 72 && s.totalSleep !== null && s.totalSleep < 360 },
+      { t: '闭门造车', m: () => steps < 2000 && H < 25 },
+      { t: '守拙', m: () => steps < 3000 },
+      { t: '低谷', m: () => true },
+      { t: '暂停', m: () => T > 0.5 && s.totalSleep !== null && s.totalSleep < 360 },
+    ],
+  };
+  const pool = pools[level] || pools.middle;
+  return (pool.find(p => p.m()) || pool[0]).t;
+}
+
+const FORT_POEMS = {
+  upper: [
+    '静水深流 / 一夜无梦 / 深睡三时 / 形神俱安',
+    '三更无扰 / 心率如常 / 今日可进 / 不宜收藏',
+    '脉搏如初 / 体温平复 / 夜卧安稳 / 昼行有度',
+    '朝露待日 / 气血充盈 / 步履轻盈 / 百脉调匀',
+    '星河在顶 / 一夜酣眠 / 晨起神清 / 万物可期',
+    '深睡两时辰 / 心脉五十余 / 体若春冰释 / 行似云中鹤',
+    '夜得长眠 / 心得其安 / 体若春木 / 向阳而生',
+    '暖意回阳 / 夜卧七时半 / 心脉四十余 / 体态从容',
+    '八千步过 / 体温如常 / 一夜无话 / 百骸皆畅',
+    '深睡逾百 / 心脉趋缓 / 夜安昼泰 / 形神俱满',
+    '阳气渐升 / 更深梦稳 / 天明体健 / 万物可期',
+    '一呼一吸 / 脏腑调和 / 夜眠昼行 / 各得其所',
+    '脉象如玉 / 体温若水 / 深睡似川 / 行步如风',
+    '春冰初解 / 气血渐通 / 夜无惊醒 / 日有从容',
+    '天时地利 / 人和体安 / 深睡盈时 / 心脉如弦',
+    '根基渐固 / 来日可追 / 一阳来复 / 乘势而为',
+  ],
+  middle: [
+    '波澜不兴 / 昼夜如常 / 不喜不惧 / 来日方长',
+    '行走八千 / 夜卧六时 / 无功无过 / 胜在坚持',
+    '如常即安 / 似静非静 / 寸进亦进 / 莫问前程',
+    '一宿无话 / 半日闲行 / 不高不低 / 恰恰正好',
+    '日行五千 / 夜卧七时 / 不过不失 / 亦足亦安',
+    '心脉时缓时急 / 深睡忽多忽少 / 在起伏中前行 / 于平淡中守常',
+    '昨夜风微 / 今朝体泰 / 不求出众 / 但求无恙',
+    '夜卧五时 / 心脉七十 / 无喜无悲 / 进退有度',
+    '步数六千 / 深睡过半 / 不温不火 / 中道而行',
+    '心脉平稳 / 深睡尚可 / 无波澜处 / 正好修心',
+    '日拱一卒 / 功不唐捐 / 虽慢不辍 / 终至千里',
+    '微澜不起 / 寻常一日 / 不惊不乍 / 即是好事',
+    '四时安睡 / 脉象如昨 / 无有长进 / 亦无退转',
+    '候时而行 / 量力而动 / 有余即是 / 有度方安',
+    '调息养神 / 正身端坐 / 稳扎稳打 / 细水长流',
+  ],
+  lower: [
+    '夜短梦多 / 气血微亏 / 宜静不宜动 / 明日再战',
+    '体温偏高 / 心绪不宁 / 停一步 / 不是退',
+    '步履沉 / 心脉急 / 今日宜敛 / 不宜争',
+    '一夕三醒 / 深睡不及半 / 闭目非休 / 暂缓',
+    '心脉如鼓 / 身若悬丝 / 收 / 等 / 缓',
+    '夜眠未足 / 昼行乏力 / 今日之事 / 明日再议',
+    '霜露沾衣 / 寒气未退 / 宜守勿攻 / 静待阳回',
+    '气血双亏 / 深睡不足 / 闭门即是深山 / 安睡即是良药',
+    '心脉浮 / 体温异 / 夜不安寝 / 昼无精神 / 休养生息',
+    '深睡三刻 / 心脉八十余 / 潜龙勿用 / 养精蓄锐',
+    '步数不足千 / 夜醒三四回 / 守拙勿浪 / 知止是智',
+    '百脉不通 / 一夜难眠 / 镜水无波 / 非静是竭',
+    '低谷非底 / 缓行非退 / 知止而后有定 / 定而后能安',
+    '一枕难安 / 半日昏沉 / 暂停即前进 / 休息即备战',
+    '体力耗尽 / 心脉浮起 / 今日唯二事 / 闭目与呼吸',
+    '否极泰来 / 物极必反 / 暂居谷底 / 只待回升',
+  ],
+};
+const FORT_SUMMARIES = {
+  upper: [
+    '各项指标平稳向好，身体正在高效修复。今天可以适当推进。',
+    '身体状态良好，睡眠质量高，适合积极安排一天。',
+    '数据全面回暖，尤其是深睡和心率表现优秀。继续保持节奏。',
+    '深睡充足，心率稳定，体温正常。身体处于最佳修复窗口。',
+    'HRV和深睡都在高位，说明自主神经平衡良好。今日状态在线。',
+    '步数和睡眠双优，今日身体能量充足，适合推进重要事项。',
+    '多项指标接近个人最佳区间，身体储备充裕。',
+    '深睡和心率同步转好，身体修复速度超过日常消耗。',
+    '深睡过百、心率平稳、活动量适中，今日状态全面在线。',
+    '各项指标同步走强，尤其是深睡和心率的配合度好。',
+    '睡眠足、心率稳、体温暖，身体完成了一次完整的修复周期。',
+    '各项关键指标均在理想区间，今日能量循环处于高效率状态。',
+    '多项指标创近几日新高，尤其是深睡和脉搏表现亮眼。',
+    '体温心率双双稳定，深睡时间充裕，身体处于高效运转模式。',
+    '数据趋势整体向上，身体储备正在稳步积累中。',
+    '从数据来看身体完成了一次高质量修复，今日能量充裕。',
+  ],
+  middle: [
+    '整体数据在正常范围内波动，没有惊喜也没有意外。稳步前进就好。',
+    '数据中庸偏稳，身体处于"过得去"的状态。不必刻意，也不可松懈。',
+    '没有明显亮点，但也没有风险点。今天适合做日常该做的事。',
+    '各项指标均在基线附近，身体处于常规运转模式。',
+    '睡眠和活动量都在及格线以上，虽不出彩但也无需担心。',
+    '心率平静，深睡尚可，总体平稳可维持当前节奏。',
+    '数据无大起大落，身体正在执行常规维护程序。',
+    '睡眠时长达标但深睡质量一般，可以接受但还有提升空间。',
+    '心率和体温都正常，步数适中，身体状态中规中矩。',
+    '深睡和活动量都一般，但也没有报警信号。守住底线就是进展。',
+    '各项指标在基准线附近徘徊，身体处于温和调整期。',
+    '今天的数据没有明确的强弱信号，适合按日常节奏继续。',
+    '体温和心率都正常，但深睡和质量评分都没有突破。',
+    '身体在执行标准维护流程，没有紧急事项需要处理。',
+    '数据在正常范围内小幅波动，身体状态可预测且稳定。',
+  ],
+  lower: [
+    '部分指标偏低，身体在发出信号。今天适宜减负，不要硬撑。',
+    '数据有些吃紧，尤其是睡眠和恢复指标。给身体一点时间。',
+    '多个指标偏离正常范围。降低今日期望，优先休息。',
+    '深睡不足且心率偏高，身体未完成修复。今日宜静养。',
+    '各项指标处于低位，身体储备正在消耗。及时止损。',
+    '连续指标偏低，修复需求大于消耗欲望。优先睡眠。',
+    '能量储备不足，今日不适合高强度决策或运动。',
+    '深睡严重不足，心率偏高，身体处于透支边缘。请优先安排睡眠。',
+    'HRV下降伴随睡眠不足，自主神经系统处于紧张状态。',
+    '体温波动和睡眠不足同时出现，身体在发出需要休息的明确信号。',
+    '深睡不到一小时、心率偏高，身体的修复机制未能正常启动。',
+    '连续多项指标低于正常范围，身体需要完整的恢复周期。',
+    '活动量骤降伴随睡眠质量走低，体力和恢复力都在下降通道。',
+    '心率和深睡数据同时报警，身体正在消耗最后的储备能量。',
+    '今晚没有别的优先级比睡眠更高。所有数据指向同一个结论。',
+    '深睡和HRV同时走低，身体处于恢复赤字状态。',
+  ],
+};
+
+function generateLocalFortune(s) {
+  const { prev, stepsStreak3 } = getPrevAndStreak(s);
+  const score = computeFortuneScore(s, prev, stepsStreak3);
+  const level = fortLevel(score);
+  const title = matchFortuneTitle(level, s);
+  const pi = ((s.deepSleep || 0) * 7 + (s.avgHRV || 0) * 13 + (s.totalSleep || 0)) % FORT_POEMS[level].length;
+  const poem = FORT_POEMS[level][pi];
+  const summary = FORT_SUMMARIES[level][pi];
+  return { level, title, poem, summary, score, data_evidence: buildDataEvidence(s) };
+}
+
+function getPrevAndStreak(s) {
+  const idx = allSummaries.findIndex(x => x.date === s.date);
+  const prev = idx >= 0 && idx + 1 < allSummaries.length ? allSummaries[idx + 1] : null;
+  const stepsStreak3 = idx >= 0 && idx + 2 < allSummaries.length
+    ? (s.steps >= 8000 && allSummaries[idx + 1].steps >= 8000 && allSummaries[idx + 2].steps >= 8000)
+    : false;
+  return { prev, stepsStreak3 };
+}
+
+function buildDataEvidence(s) {
+  const parts = [];
+  if (s.deepSleep !== null) parts.push(`深睡 ${Math.floor(s.deepSleep/60)}h${s.deepSleep%60}min`);
+  if (s.avgHRV !== null) parts.push(`HRV ${s.avgHRV}`);
+  if (s.avgRHR !== null) parts.push(`心率 ${s.avgRHR}`);
+  if (s.steps !== null) parts.push(`步数 ${parseInt(s.steps).toLocaleString()}`);
+  if (s.tempDev !== null) parts.push(`体温${s.tempDev > 0 ? '+' : ''}${s.tempDev}°C`);
+  return parts.join(' · ');
+}
+
+function buildTags(s) {
+  const t = [];
+  if (s.totalSleep !== null) t.push(`💤 ${Math.floor(s.totalSleep/60)}h${s.totalSleep%60}m`);
+  if (s.avgHRV !== null) t.push(`💓 HRV ${s.avgHRV}`);
+  if (s.avgRHR !== null) t.push(`❤️ ${s.avgRHR} bpm`);
+  if (s.steps !== null && s.steps > 0) t.push(`👣 ${parseInt(s.steps).toLocaleString()}步`);
+  if (s.tempDev !== null) t.push(`🌡️ ${s.tempDev > 0 ? '+' : ''}${s.tempDev}°C`);
+  if (s.deepSleep !== null) t.push(`🌙 深睡${s.deepSleep}min`);
+  return t;
+}
+
+function buildDataSummary(s) {
+  const parts = [];
+  if (s.totalSleep !== null) parts.push(`睡眠${Math.floor(s.totalSleep/60)}h${s.totalSleep%60}m`);
+  if (s.deepSleep !== null) parts.push(`深睡${s.deepSleep}min`);
+  if (s.avgHRV !== null) parts.push(`HRV${s.avgHRV}`);
+  if (s.avgRHR !== null) parts.push(`心率${s.avgRHR}`);
+  if (s.steps !== null && s.steps > 0) parts.push(`步${parseInt(s.steps).toLocaleString()}`);
+  return parts.length ? parts.join(' · ') : '暂无数据';
+}
+
+function sourceLabel(s) { return { oura:'Oura', whoop:'Whoop', apple_watch:'Apple Watch' }[s] || s || ''; }
+
+function bodyName() {
+  const map = { guardian:'大白', lazy:'本人', memorial:'臣', logger:'系统' };
+  return map[currentTone] || '大白';
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  return `${dt.getMonth()+1}月${dt.getDate()}日`;
+}
+
+// ===== Tab =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  $(`tab-${tab}`).classList.add('active');
+  const titles = { fortune:'今日签', feed:'身体日志', chat:'和身体对话', profile:'我' };
+  $('pageTitle').textContent = titles[tab] || '';
+  $('pageSub').textContent = tab === 'fortune' && allSummaries.length ? `${allSummaries.length} 天` : '';
+}
+
+// ===== Profile =====
+const AVATARS = ['身','体','你','我'];
+let _avatarIdx = 0;
+function changeAvatar() {
+  _avatarIdx = (_avatarIdx + 1) % AVATARS.length;
+  $('profileAv').textContent = AVATARS[_avatarIdx];
+  saveProfile();
+}
+function saveProfile() {
+  const data = { avatar: $('profileAv').textContent, name: $('profileName').value || '我', tone: currentTone };
+  localStorage.setItem('body_voice_profile', JSON.stringify(data));
+}
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem('body_voice_profile');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.avatar) { $('profileAv').textContent = data.avatar; _avatarIdx = Math.max(0, AVATARS.indexOf(data.avatar)); }
+    if (data.name) $('profileName').value = data.name;
+    if (data.tone) selectTone(data.tone);
+  } catch {}
+}
+function storeFortune(fortune, date) {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('body_voice_fortunes') || '[]'); } catch {}
+  list.unshift({ fortune, date, time: Date.now() });
+  if (list.length > 50) list = list.slice(0, 50);
+  localStorage.setItem('body_voice_fortunes', JSON.stringify(list));
+  renderHistoryFortunes();
+}
+function renderHistoryFortunes() {
+  const el = $('historyFortunes');
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('body_voice_fortunes') || '[]'); } catch {}
+  if (!list.length) { $('historyEnd').style.display = 'block'; el.innerHTML = ''; return; }
+  $('historyEnd').style.display = 'none';
+  el.innerHTML = list.map(item => {
+    const f = item.fortune || {};
+    const d = item.date || '';
+    const level = f.level || f.seal || '中签';
+    const seal = level;
+    const cls = level.includes('下') ? 'low' : '';
+    const detail = f.summary || f.body || '';
+    const safeDetail = detail.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return `<div class="history-card" onclick="alert('${safeDetail}')">
+      <span class="hist-seal ${cls}">${seal}</span>
+      <span class="hist-title">${f.title || '宜静养'}</span>
+      <span class="hist-date">${fmtDate(d)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ===== Chat =====
+let _chatBusy = false;
+function addChatMsg(text, isUser) {
+  const log = $('chatLog');
+  const p = $('chatPlaceholder');
+  if (p) p.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = `chat-msg ${isUser ? 'user' : 'body'}`;
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  div.innerHTML = `<div class="bubble">${text}</div><span class="time">${time}</span>`;
+  log.appendChild(div);
+}
+
+async function askBody(question) {
+  if (_chatBusy) return;
+  addChatMsg(question, true);
+  _chatBusy = true;
+  $('chatSendBtn').disabled = true;
+  document.querySelectorAll('.chat-preset-btn').forEach(b => b.disabled = true);
+  try {
+    const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ question, tone: currentTone, data: allSummaries.length > 0 ? dayPromptShort(allSummaries[0]) : null }) });
+    const data = await res.json();
+    addChatMsg(data.answer || '(身体沉默不语)');
+  } catch(e) { addChatMsg('(身体暂时不想说话)'); }
+  _chatBusy = false;
+  $('chatSendBtn').disabled = false;
+  document.querySelectorAll('.chat-preset-btn').forEach(b => b.disabled = false);
+}
+
+function sendChat() {
+  const q = $('chatInput').value.trim();
+  if (!q) return;
+  $('chatInput').value = '';
+  askBody(q);
+}
+
+// Init
+loadProfile();
+renderHistoryFortunes();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</div>
+</body>
+</html>

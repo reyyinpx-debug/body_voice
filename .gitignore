@@ -1,0 +1,5 @@
+*.docx
+.claude/
+.env
+.vercel
+node_modules/

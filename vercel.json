@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/generate.js": {
+      "maxDuration": 10
+    },
+    "api/chat.js": {
+      "maxDuration": 10
+    },
+    "api/fortune.js": {
+      "maxDuration": 10
+    }
+  },
+  "name": "body-voice"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "体曰 · Body Voice",
+  "short_name": "体曰",
+  "description": "你的身体有自己的社交账号",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F6F0",
+  "theme_color": "#F8F6F0",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
