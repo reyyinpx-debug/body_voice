@@ -9,9 +9,5 @@
     "api/fortune.js": {
       "maxDuration": 10
     }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "name": "body-voice"
+  }
 }
