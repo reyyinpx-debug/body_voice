@@ -144,7 +144,7 @@ body::before {
 #tab-fortune.active { justify-content:center; }
 #tab-feed.active, #tab-chat.active { background:rgba(255,255,255,0.55); }
 /* #tab-chat.active inherits from .tab-content.active */
-#tab-chat.active .chat-log { flex:1; }
+#tab-chat.active .chat-log { flex:1; min-height:0; overflow-y:auto; }
 
 /* Bottom Tab Bar — sticky inside flex, no fixed positioning */
 .tab-bar {
@@ -261,7 +261,7 @@ body::before {
 .feed-end { text-align:center; padding:32px; color:var(--ink-faint); font-size:12px; font-weight:300; }
 
 /* Chat Tab */
-.chat-log { margin:16px 0; min-height:200px; }
+.chat-log { margin:16px 0; }
 .chat-msg { margin-bottom:16px; }
 .chat-msg.user { text-align:right; }
 .chat-msg .bubble {
@@ -806,8 +806,10 @@ function toSummary(r, device) {
   let date = rawDate;
   if (rawDate) date = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate.split(' ')[0];
 
-  const totalSleep = min(m.totalSleep);
-  const deepSleep = min(m.deepSleep);
+  let totalSleep = min(m.totalSleep);
+  let deepSleep = min(m.deepSleep);
+  let remSleep = min(m.remSleep);
+  let lightSleep = min(m.lightSleep);
   const avgHRV = get(m.avgHRV);
   const avgRHR = get(m.avgRHR);
   const steps = get(m.steps);
@@ -817,9 +819,16 @@ function toSummary(r, device) {
   const readinessScore = get(m.readinessScore);
   const activityScore = get(m.activityScore);
 
+  // Oura CSV stores sleep durations in seconds — convert to minutes
+  if (device === 'oura') {
+    if (totalSleep !== null) totalSleep = Math.round(totalSleep / 60);
+    if (deepSleep !== null) deepSleep = Math.round(deepSleep / 60);
+    if (remSleep !== null) remSleep = Math.round(remSleep / 60);
+    if (lightSleep !== null) lightSleep = Math.round(lightSleep / 60);
+  }
+
   return {
-    date, totalSleep, deepSleep,
-    remSleep: min(m.remSleep), lightSleep: min(m.lightSleep),
+    date, totalSleep, deepSleep, remSleep, lightSleep,
     avgHRV: avgHRV ? Math.round(Number(avgHRV)) : null,
     avgRHR: avgRHR ? Math.round(Number(avgRHR) * 100) / 100 : null,
     steps: steps ? Math.round(Number(steps)) : null,
