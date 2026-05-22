@@ -1,0 +1,18 @@
+[build]
+  command = ""
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/generate"
+  to = "/.netlify/functions/generate"
+  status = 200
+
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/fortune"
+  to = "/.netlify/functions/fortune"
+  status = 200
